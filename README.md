@@ -22,3 +22,82 @@ DeepCORAG is a prototype application that demonstrates an iterative retrieval-au
    ```bash
    pip install -r requirements.txt
    ```
+
+3. **Create and activate virtual environment:**
+   ```bash
+   python -m venv venv
+   # On Linux/macOS:
+   source venv/bin/activate
+   # On Windows:
+   # venv\Scripts\activate
+
+pip install -r requirements.txt
+   ```
+
+4. **Activate virtual environment:**
+   ```bash
+   # On Linux/macOS:
+   source venv/bin/activate
+   # On Windows:
+   venv\Scripts\activate
+   ```
+
+5. **Set up your API keys:** Create a .env file in the root directory and add your keys:
+   ```bash
+   OPENAI_API_KEY=your_openai_key
+   DEEPSEEK_API_KEY=your_deepseek_key
+   ```
+
+6. **Run the application:**
+   ```bash
+   python src/corag.py
+   ```
+
+## Usage
+
+1. **Upload a PDF document:**
+   - Click the "Upload" button in the Gradio interface.
+   - Select a PDF file to upload.
+   - The application will process the document and display the results.
+
+2. **Enter a query:**
+   - Type your query in the input field.
+   - Click the "Submit" button to get the answer.
+
+3. **View the results:**
+   - The application will display the answer and the sources used to generate the answer.
+
+## Contributing
+
+1. **Fork the repository:**
+   - Click the "Fork" button on the top right of the repository page.
+
+2. **Create a new branch:**
+   - Click the "Branch" button on the top right of the repository page.
+   - Type a name for your branch (e.g., "feature-new-feature").
+   - Click the "Create branch" button.
+
+3. **Make your changes and commit them:**
+   - Click the "Commit" button on the top right of the repository page.
+
+4. **Push your changes:**
+   - Click the "Push" button on the top right of the repository page.
+
+5. **Create a pull request:**
+   - Click the "Pull request" button on the top right of the repository page.
+   - Type a title for your pull request.
+   - Click the "Create pull request" button.
+
+6. **Merge your pull request:**
+   - Click the "Merge" button on the top right of the repository page.
+
+7. **Update your local repository:**
+   - Click the "Pull" button on the top right of the repository page.
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+## Contact
+
+info@abayomiolagunju.net 
