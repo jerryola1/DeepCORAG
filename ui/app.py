@@ -7,15 +7,24 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.corag import process_document
 
 
-#create an LLM instance for iterative query refinement (using GPT-4o for now)
+#create an LLM instance for iterative query refinement 
 model = ChatOpenAI(model="gpt-4o", temperature=0)
 
 def upload_and_query(file_obj, query):
     #check if a file was uploaded.
     if file_obj is None:
         return "Please upload a document."
+    
     try:
-        file_bytes = file_obj.read()
+        #updated file reading logic to handle different file_obj types
+        if isinstance(file_obj, str):
+            with open(file_obj, "rb") as f:
+                file_bytes = f.read()
+        elif isinstance(file_obj, dict) and "name" in file_obj:
+            with open(file_obj["name"], "rb") as f:
+                file_bytes = f.read()
+        else:
+            file_bytes = file_obj.read()
     except Exception as e:
         return f"Error reading file: {e}"
     
