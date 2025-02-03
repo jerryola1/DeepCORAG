@@ -1,38 +1,73 @@
 import gradio as gr
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.corag import process_document
+
+
+#create an LLM instance for iterative query refinement (using GPT-4o for now)
+model = ChatOpenAI(model="gpt-4o", temperature=0)
 
 def upload_and_query(file_obj, query):
     #check if a file was uploaded.
     if file_obj is None:
         return "Please upload a document."
     try:
-        #read file bytes from the uploaded file object.
         file_bytes = file_obj.read()
     except Exception as e:
         return f"Error reading file: {e}"
-
+    
     try:
-        #process the document: this extracts text, splits into chunks,
-        #generates embeddings, and creates (or loads) a persisted vector store.
+        #process the document to generate (or load) the persistent vector store.
         vector_store = process_document(file_bytes)
     except Exception as e:
         return f"Error processing document: {e}"
     
+    #initial retrieval: perform a similarity search with the user query.
     try:
-        #retrieve relevant document chunks based on the query.
-        #this performs a similarity search on the vector store.
         results = vector_store.similarity_search(query)
-        #combine the retrieved chunks for display.
-        retrieved_text = "\n\n".join([doc.page_content for doc in results])
+        aggregated_context = "\n\n".join([doc.page_content for doc in results])
     except Exception as e:
-        return f"Error during retrieval: {e}"
+        return f"Error during initial retrieval: {e}"
     
-    return retrieved_text
+    #CORAG iterative retrieval:
+    max_iterations = 2  # For demonstration, we limit to 2 iterations.
+    followup_prompt_template = (
+        "Based on the original question and the context retrieved so far:\n"
+        "Original Question: {question}\n"
+        "Aggregated Context: {context}\n"
+        "If this context is insufficient to answer the question fully, "
+        "generate a follow-up query to retrieve additional information.\n"
+        "If you have enough information, simply respond with \"Enough\".\n"
+        "Follow-up Query:"
+    )
+    
+    for i in range(max_iterations):
+        prompt = followup_prompt_template.format(question=query, context=aggregated_context)
+        try:
+            followup_response = model.invoke([HumanMessage(content=prompt)])
+            followup_query = followup_response.strip()
+        except Exception as e:
+            return f"Error during follow-up query generation: {e}"
+        
+        #if the model indicates that the current context is sufficient, break out.
+        if followup_query.lower() == "enough":
+            break
+        
+        #retrieve additional documents based on the follow-up query.
+        try:
+            new_results = vector_store.similarity_search(followup_query)
+            new_context = "\n\n".join([doc.page_content for doc in new_results])
+            aggregated_context += "\n\n" + new_context
+        except Exception as e:
+            return f"Error during follow-up retrieval: {e}"
+    
+    #return the aggregated context as the final retrieved information.
+    return aggregated_context
 
-#gradio interface: allows file upload and text query
+#gradio interface: allows file upload and text query input.
 iface = gr.Interface(
     fn=upload_and_query,
     inputs=[
@@ -40,8 +75,8 @@ iface = gr.Interface(
         gr.components.Textbox(lines=2, placeholder="Enter your query here", label="Query")
     ],
     outputs=gr.components.Textbox(label="Retrieved Information"),
-    title="DeepCORAG Document Q&A",
-    description="Upload a PDF document and ask a question. The system will process the document, cache its embeddings, and retrieve relevant information using an iterative CORAG approach."
+    title="DeepCORAG Document Q&A with Iterative Retrieval",
+    description="Upload a PDF document and ask a question. The system will process the document and use an iterative CORAG approach to retrieve relevant information."
 )
 
 if __name__ == "__main__":
