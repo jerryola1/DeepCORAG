@@ -57,15 +57,14 @@ def upload_and_query(file_obj, query):
         prompt = followup_prompt_template.format(question=query, context=aggregated_context)
         try:
             followup_response = model.invoke([HumanMessage(content=prompt)])
-            followup_query = followup_response.strip()
+            followup_query = followup_response.content.strip()
+            print(f"Iteration {i+1} follow-up query: {followup_query}") 
         except Exception as e:
             return f"Error during follow-up query generation: {e}"
         
-        #if the model indicates that the current context is sufficient, break out.
         if followup_query.lower() == "enough":
             break
         
-        #retrieve additional documents based on the follow-up query.
         try:
             new_results = vector_store.similarity_search(followup_query)
             new_context = "\n\n".join([doc.page_content for doc in new_results])
