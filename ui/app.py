@@ -42,6 +42,7 @@ def upload_and_query(file_obj, query):
         return f"Error during initial retrieval: {e}"
     
     #CORAG iterative retrieval:
+    debug_log = []
     max_iterations = 2  # For demonstration, we limit to 2 iterations.
     followup_prompt_template = (
         "Based on the original question and the context retrieved so far:\n"
@@ -59,10 +60,12 @@ def upload_and_query(file_obj, query):
             followup_response = model.invoke([HumanMessage(content=prompt)])
             followup_query = followup_response.content.strip()
             print(f"Iteration {i+1} follow-up query: {followup_query}") 
+            debug_log.append(f"Iteration {i+1} follow-up query: {followup_query}")
         except Exception as e:
             return f"Error during follow-up query generation: {e}"
         
         if followup_query.lower() == "enough":
+            debug_log.append("Stopping iterative retrieval: context is sufficient.")
             break
         
         try:
@@ -73,7 +76,8 @@ def upload_and_query(file_obj, query):
             return f"Error during follow-up retrieval: {e}"
     
     #return the aggregated context as the final retrieved information.
-    return aggregated_context
+    final_output = "\n".join(debug_log) + "\n\nFinal Retrieved Information:\n" + aggregated_context
+    return final_output
 
 #gradio interface: allows file upload and text query input.
 iface = gr.Interface(
