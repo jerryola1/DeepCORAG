@@ -1,4 +1,5 @@
 langchain-community
+openai
 langchain-openai
 langchain-chroma
 tiktoken
@@ -9,3 +10,4 @@ pypdf
 gradio
 pydantic
 python-dotenv
+tenacity>=8.2.2
